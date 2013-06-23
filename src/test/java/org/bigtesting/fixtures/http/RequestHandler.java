@@ -10,7 +10,7 @@ public class RequestHandler {
     private String contentType;
     private String body;
     
-    public void withResponse(int statusCode, String contentType, String body) {
+    public void with(int statusCode, String contentType, String body) {
         
         this.statusCode = statusCode;
         this.contentType = contentType;

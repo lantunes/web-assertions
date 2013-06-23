@@ -3,6 +3,7 @@ package org.bigtesting.assertions.web.concurrent;
 import java.util.concurrent.CountDownLatch;
 
 import junit.framework.Assert;
+import junit.framework.AssertionFailedError;
 
 public class ConcurrentRequest {
 
@@ -12,7 +13,7 @@ public class ConcurrentRequest {
         this.clients = clients;
     }
     
-    public ConcurrentRequest canMakeConcurrentRequests() {
+    public void canMakeConcurrentRequests() {
         
         CountDownLatch startLatch = new CountDownLatch(1);
         CountDownLatch stopLatch = new CountDownLatch(clients.length);
@@ -28,13 +29,21 @@ public class ConcurrentRequest {
             throw new RuntimeException(e);
         }
         
+        failIfAClientHasError();
+    }
+
+    private void failIfAClientHasError() {
+        
         for (Client cl : clients) {
             if (cl.hasException()) {
-                cl.getCaught().printStackTrace();
-                Assert.fail("a client reported an exception: " + cl.getCaught().getMessage());
+                String message = "client named " + cl.getName() + 
+                        " reported a problem: " + cl.getCaught().getMessage();
+                
+                if (!(cl.getCaught() instanceof AssertionFailedError)) {
+                    throw new RuntimeException(message, cl.getCaught());
+                }
+                Assert.fail(message);
             }
         }
-        
-        return this;
     }
 }

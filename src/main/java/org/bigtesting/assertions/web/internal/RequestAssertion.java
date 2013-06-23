@@ -47,7 +47,7 @@ public class RequestAssertion {
 //    }
 //    
     public PageAssertion producesPage() {
-        assertNotNull(page);
+        assertNotNull("page was not produced:", page);
         return new PageAssertion(page);
     }
 //    

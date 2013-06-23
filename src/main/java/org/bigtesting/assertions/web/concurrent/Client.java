@@ -4,7 +4,14 @@ import org.bigtesting.WebAssertions;
 
 public abstract class Client implements Runnable {
 
-    private Exception caught;
+    private String name;
+    private Throwable caught;
+    
+    public Client() {}
+    
+    public Client(String name) {
+        this.name = name;
+    }
     
     public void run() {
         
@@ -13,14 +20,18 @@ public abstract class Client implements Runnable {
             onRequest();
             WebAssertions.closeWebClient();
             
-        } catch (Exception e) {
+        } catch (Throwable e) {
             caught = e;
         }
     }
     
     public abstract void onRequest();
     
-    public Exception getCaught() {
+    public String getName() {
+        return name;
+    }
+    
+    public Throwable getCaught() {
         return caught;
     }
     

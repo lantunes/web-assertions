@@ -46,12 +46,12 @@ public class PageAssertion {
     }
     
     public PageAssertion withContentType(String contentType) {
-        assertEquals(contentType, page.getWebResponse().getContentType());
+        assertEquals("unexpected content-type:", contentType, page.getWebResponse().getContentType());
         return this;
     }
     
     public PageAssertion withContent(String content) {
-        assertEquals(content, page.getWebResponse().getContentAsString());
+        assertEquals("unexpected content:", content, page.getWebResponse().getContentAsString());
         return this;
     }
     

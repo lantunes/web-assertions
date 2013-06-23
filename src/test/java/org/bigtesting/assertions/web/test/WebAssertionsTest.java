@@ -47,7 +47,7 @@ public class WebAssertionsTest {
     public void test1() {
         
        server.handle(Method.GET, "/")
-             .withResponse(200, "text/html", 
+             .with(200, "text/html", 
                      html(body(h1("Hello"))));
         
         assertThatRequestFor(localhost + "/")
@@ -65,18 +65,18 @@ public class WebAssertionsTest {
          */
         
         server.handle(Method.GET, "/name/:name")
-            .withResponse(200, "text/html", 
-                    html(body(h1("Hello :name"))));
+              .with(200, "text/html", 
+                      html(body(h1("Hello :name"))));
         
         assertThatClients(
-                new Client() {
+                new Client("client-1") {
                     public void onRequest() {
                         assertThatRequestFor(localhost + "/name/Joe")
                             .producesPage()
                             .withH1Tag(withContent("Hello Joe"));
                     }
                 }, 
-                new Client() {
+                new Client("client-2") {
                     public void onRequest() {
                         assertThatRequestFor(localhost + "/name/Tim")
                             .producesPage()
@@ -93,6 +93,12 @@ public class WebAssertionsTest {
          * TODO add support to server fixture to 
          * return async response; see: http://www.simpleframework.org/doc/tutorial/tutorial.php
          * near bottom
+         */
+        
+        /*
+         * TODO take the body of an async response and convert it
+         * into an HtmlUnit Page, so that we can make our typical
+         * assertions on it
          */
         
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();

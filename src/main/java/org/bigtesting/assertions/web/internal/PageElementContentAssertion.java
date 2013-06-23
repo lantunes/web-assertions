@@ -13,6 +13,7 @@ public class PageElementContentAssertion {
     }
     
     public void doAssertion(HtmlElement element) {
-        assertEquals(expected, element.getTextContent());
+        assertEquals("unexpected " + element.getTagName() + 
+                " element content:", expected, element.getTextContent());
     }
 }
