@@ -1,4 +1,4 @@
-package org.bigtesting.web.assertions.internal;
+package org.bigtesting.assertions.web.internal;
 
 import static junit.framework.Assert.*;
 

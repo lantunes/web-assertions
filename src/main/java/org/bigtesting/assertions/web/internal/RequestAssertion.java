@@ -1,4 +1,4 @@
-package org.bigtesting.web.assertions.internal;
+package org.bigtesting.assertions.web.internal;
 
 import static junit.framework.Assert.*;
 
@@ -11,12 +11,8 @@ public class RequestAssertion {
     private WebClient client;
     
     public RequestAssertion(WebClient client, String path) {
+        
         this.client = client;
-        
-        //TODO debugging
-        System.out.println("client: " + client + " : " + Thread.currentThread().getName());
-        //end debugging
-        
         try {
             page = client.getPage(path);
         } catch (Exception e) {

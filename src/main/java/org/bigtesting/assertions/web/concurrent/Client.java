@@ -1,4 +1,6 @@
-package org.bigtesting.web.assertions.concurrent;
+package org.bigtesting.assertions.web.concurrent;
+
+import org.bigtesting.WebAssertions;
 
 public abstract class Client implements Runnable {
 
@@ -9,6 +11,7 @@ public abstract class Client implements Runnable {
         try {
             
             onRequest();
+            WebAssertions.closeWebClient();
             
         } catch (Exception e) {
             caught = e;

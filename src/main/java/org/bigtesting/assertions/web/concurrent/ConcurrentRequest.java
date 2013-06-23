@@ -1,4 +1,4 @@
-package org.bigtesting.web.assertions.concurrent;
+package org.bigtesting.assertions.web.concurrent;
 
 import java.util.concurrent.CountDownLatch;
 
