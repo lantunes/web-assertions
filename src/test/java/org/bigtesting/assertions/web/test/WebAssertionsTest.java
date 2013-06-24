@@ -7,6 +7,7 @@ import java.util.concurrent.Future;
 
 import org.bigtesting.assertions.web.concurrent.Client;
 import org.bigtesting.fixtures.http.Method;
+import org.bigtesting.fixtures.http.PathParamSessionHandler;
 import org.bigtesting.fixtures.http.ServerFixture;
 import org.junit.After;
 import org.junit.Before;
@@ -84,6 +85,28 @@ public class WebAssertionsTest {
                     }
                 })
                 .canMakeConcurrentRequests();
+    }
+    
+    @Test
+    public void test3() {
+       
+        server.handle(Method.GET, "/user/:name")
+              .with(200, "text/html", 
+                      html(body(h1("OK"))))
+              .withNewSession(new PathParamSessionHandler());
+        
+        server.handle(Method.GET, "/user")
+              .with(200, "text/html", 
+                      html(body(h1("Hello {name}"))));
+        
+        assertThatRequestFor(localhost + "/user/Joe")
+            .producesPage()
+            .withH1Tag(withContent("OK"));
+        
+        //TODO newWebClient(); //produces no server response error
+        assertThatRequestFor(localhost + "/user")
+            .producesPage()
+            .withH1Tag(withContent("Hello Joe"));
     }
     
     //@Test
