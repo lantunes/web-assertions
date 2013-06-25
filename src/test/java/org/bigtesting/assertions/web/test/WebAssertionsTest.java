@@ -130,11 +130,18 @@ public class WebAssertionsTest {
     public void test4() throws Exception {
         
         /*
-         * TODO add support to server fixture to return async response
+         * TODO add support to server fixture to 
+         * return async response; see: http://www.simpleframework.org/doc/tutorial/tutorial.php
+         * near bottom
          */
         server.handle(Method.GET, "/suspend")
               .with(200, "text/html", html(body(h1("ok"))))
               .after(1, TimeUnit.SECONDS);
+        
+        server.handle(Method.GET, "/broadcast")
+              .with(200, "text/html", html(body(h1("ok"))));
+              //TODO
+              //.every(2, TimeUnit.SECONDS);
         
         /*
          * TODO take the body of an async response and convert it
