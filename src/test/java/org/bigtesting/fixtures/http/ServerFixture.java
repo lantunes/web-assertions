@@ -9,6 +9,19 @@ import org.simpleframework.transport.Server;
 import org.simpleframework.transport.connect.Connection;
 import org.simpleframework.transport.connect.SocketConnection;
 
+/*
+ * fixtd, http-fixtures:
+ * 
+ * Allows one to quickly set up an HTTP server for an HTTP client test:
+ * - little overhead; a server instance can be created for each test
+ * - fully functional, high-performance HTTP server, via the Simple framework
+ * - simple, fluent API for configuring how the server should behave
+ * - support for creating complex routing rules, based on HTTP method, 
+ *   content type, and URI patterns
+ * - support for using sessions for tests that require state between requests
+ * - support for asynchronous HTTP responses
+ * - add a delay to a response for tests that require a delayed response
+ */
 public class ServerFixture {
 
     private final int port;

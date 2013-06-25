@@ -4,6 +4,7 @@ import static org.bigtesting.WebAssertions.*;
 import static org.bigtesting.html.HtmlWriter.*;
 
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.bigtesting.assertions.web.concurrent.Client;
 import org.bigtesting.fixtures.http.Method;
@@ -125,14 +126,15 @@ public class WebAssertionsTest {
                 .canMakeConcurrentRequests(10);
     }
     
-    //@Test
+    @Test
     public void test4() throws Exception {
         
         /*
-         * TODO add support to server fixture to 
-         * return async response; see: http://www.simpleframework.org/doc/tutorial/tutorial.php
-         * near bottom
+         * TODO add support to server fixture to return async response
          */
+        server.handle(Method.GET, "/suspend")
+              .with(200, "text/html", html(body(h1("ok"))))
+              .after(1, TimeUnit.SECONDS);
         
         /*
          * TODO take the body of an async response and convert it
@@ -141,7 +143,7 @@ public class WebAssertionsTest {
          */
         
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        Future<Response> f = asyncHttpClient.prepareGet("http://www.ning.com/").execute();
+        Future<Response> f = asyncHttpClient.prepareGet(localhost + "/suspend").execute();
         Response r = f.get();
         
         System.out.println(r.getResponseBody());

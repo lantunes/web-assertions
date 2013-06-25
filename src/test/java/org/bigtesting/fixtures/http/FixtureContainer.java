@@ -4,6 +4,7 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.simpleframework.http.ContentType;
 import org.simpleframework.http.Cookie;
@@ -83,6 +84,8 @@ public class FixtureContainer implements Container {
         }
         response.setCode(handler.statusCode());
         
+        delayIfRequired(handler);        
+        
         sendResponse(response, responseContentType, responseBody);
     }
     
@@ -106,6 +109,23 @@ public class FixtureContainer implements Container {
         
         Cookie cookie = new Cookie(SESSION_COOKIE_NAME, sessionId);
         response.setCookie(cookie);
+    }
+    
+    private void delayIfRequired(RequestHandler handler) {
+        
+        long delay = handler.delay();
+        if (delay > -1) {
+            
+            try {
+                
+                TimeUnit delayUnit = handler.delayUnit();
+                long delayInMillis = delayUnit.toMillis(delay);
+                Thread.sleep(delayInMillis);
+                
+            } catch (Exception e) {
+                throw new RuntimeException("error delaying response", e);
+            }
+        }
     }
     
     private void sendResponse(Response response, String responseContentType, String responseBody) {
