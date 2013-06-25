@@ -47,6 +47,9 @@ public class FixtureContainer implements Container {
         ContentType requestContentType = request.getContentType();
         
         Route route = routeMap.getRoute(path);
+        if (route == null) {
+            throw new RuntimeException("could not find a route for " + path);
+        }
         String contentType = requestContentType != null ? 
                 requestContentType.toString() : null;
         HandlerKey key = new HandlerKey(method, route, contentType);

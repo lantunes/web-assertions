@@ -59,12 +59,6 @@ public class WebAssertionsTest {
     @Test
     public void test2() {
         
-        /*
-         * TODO test that assertThatRequestFor()
-         * really does associate a new WebClient
-         * with the current thread consistently
-         */
-        
         server.handle(Method.GET, "/name/:name")
               .with(200, "text/html", 
                       html(body(h1("Hello :name"))));
@@ -89,24 +83,46 @@ public class WebAssertionsTest {
     
     @Test
     public void test3() {
+        
+        /*
+         * tests that assertThatRequestFor()
+         * really does associate a new WebClient
+         * with the current thread consistently
+         */
        
-        server.handle(Method.GET, "/user/:name")
+        server.handle(Method.GET, "/set/name/:name")
               .with(200, "text/html", 
                       html(body(h1("OK"))))
               .withNewSession(new PathParamSessionHandler());
         
-        server.handle(Method.GET, "/user")
+        server.handle(Method.GET, "/get/name")
               .with(200, "text/html", 
-                      html(body(h1("Hello {name}"))));
+                      html(body(h1("Name: {name}"))));
         
-        assertThatRequestFor(localhost + "/user/Joe")
-            .producesPage()
-            .withH1Tag(withContent("OK"));
-        
-        //TODO newWebClient(); //produces no server response error
-        assertThatRequestFor(localhost + "/user")
-            .producesPage()
-            .withH1Tag(withContent("Hello Joe"));
+        assertThatClients(
+                new Client("client-1") {
+                    public void onRequest() {
+                        assertThatRequestFor(localhost + "/set/name/Joe")
+                            .producesPage()
+                            .withH1Tag(withContent("OK"));
+                        
+                        assertThatRequestFor(localhost + "/get/name")
+                            .producesPage()
+                            .withH1Tag(withContent("Name: Joe"));
+                    }
+                },
+                new Client("client-2") {
+                    public void onRequest() {
+                        assertThatRequestFor(localhost + "/set/name/Tim")
+                            .producesPage()
+                            .withH1Tag(withContent("OK"));
+                        
+                        assertThatRequestFor(localhost + "/get/name")
+                            .producesPage()
+                            .withH1Tag(withContent("Name: Tim"));
+                    }
+                })
+                .canMakeConcurrentRequests(10);
     }
     
     //@Test

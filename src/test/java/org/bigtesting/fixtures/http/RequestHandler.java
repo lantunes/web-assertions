@@ -47,15 +47,17 @@ public class RequestHandler {
             responseBody = responseBody.replaceAll(":" + param.name(), pathTokens[param.index()]);
         }
         
-        /* handle any values that are enclosed in '{}' */
-        Matcher m = SESSION_VALUE_PATTERN.matcher(responseBody);
-        while (m.find()) {
-            
-            String key = m.group(1);
-            Object val = session.get(key);
-            if (val != null) {
-                String stringVal = val.toString();
-                responseBody = responseBody.replaceFirst(SESSION_VALUE_PATTERN.pattern(), stringVal);
+        if (session != null) {
+            /* handle any values that are enclosed in '{}' */
+            Matcher m = SESSION_VALUE_PATTERN.matcher(responseBody);
+            while (m.find()) {
+                
+                String key = m.group(1);
+                Object val = session.get(key);
+                if (val != null) {
+                    String stringVal = val.toString();
+                    responseBody = responseBody.replaceFirst(SESSION_VALUE_PATTERN.pattern(), stringVal);
+                }
             }
         }
         

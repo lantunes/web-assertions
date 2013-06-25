@@ -26,7 +26,7 @@ public class ServerFixture {
     public void start() throws IOException {
         
         server = new ContainerServer(container);
-        connection = new SocketConnection(server);
+        connection = new SocketConnection(server, new LoggingAgent());
         SocketAddress address = new InetSocketAddress(port);
         connection.connect(address);
     }

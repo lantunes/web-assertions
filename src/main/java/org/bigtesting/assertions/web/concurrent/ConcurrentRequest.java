@@ -14,22 +14,34 @@ public class ConcurrentRequest {
     }
     
     public void canMakeConcurrentRequests() {
-        
-        CountDownLatch startLatch = new CountDownLatch(1);
-        CountDownLatch stopLatch = new CountDownLatch(clients.length);
+        canMakeConcurrentRequests(1);
+    }
+    
+    public void canMakeConcurrentRequests(int times) {
 
-        for (Client cl : clients) {
-            new SyncedThread(cl, startLatch, stopLatch).start();
-        }
-
-        startLatch.countDown(); /* let all threads proceed */
-        try {
-            stopLatch.await(); /* wait for all to finish */
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        int n = times;
+        if (n < 1) {
+            n = 1;
         }
         
-        failIfAClientHasError();
+        for (int i = 0; i < n; i++) {
+        
+            CountDownLatch startLatch = new CountDownLatch(1);
+            CountDownLatch stopLatch = new CountDownLatch(clients.length);
+    
+            for (Client cl : clients) {
+                new SyncedThread(cl, startLatch, stopLatch).start();
+            }
+    
+            startLatch.countDown(); /* let all threads proceed */
+            try {
+                stopLatch.await(); /* wait for all to finish */
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            
+            failIfAClientHasError();
+        }
     }
 
     private void failIfAClientHasError() {
