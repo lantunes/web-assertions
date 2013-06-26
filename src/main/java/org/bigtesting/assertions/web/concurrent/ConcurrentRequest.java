@@ -30,7 +30,9 @@ public class ConcurrentRequest {
             CountDownLatch stopLatch = new CountDownLatch(clients.length);
     
             for (Client cl : clients) {
-                new SyncedThread(cl, startLatch, stopLatch).start();
+                for (int c = 0; c < cl.getCopies(); c++) {
+                    new SyncedThread(cl, startLatch, stopLatch).start();
+                }
             }
     
             startLatch.countDown(); /* let all threads proceed */

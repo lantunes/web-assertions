@@ -6,11 +6,23 @@ public abstract class Client implements Runnable {
 
     private String name;
     private Throwable caught;
+    private int copies;
     
-    public Client() {}
+    public Client() {
+        this(null);
+    }
     
     public Client(String name) {
+        this(name, 1);
+    }
+    
+    public Client(int copies) {
+        this(null, copies);
+    }
+    
+    public Client(String name, int copies) {
         this.name = name;
+        this.copies = copies;
     }
     
     public void run() {
@@ -37,5 +49,9 @@ public abstract class Client implements Runnable {
     
     public boolean hasException() {
         return getCaught() != null;
+    }
+    
+    public int getCopies() {
+        return copies;
     }
 }

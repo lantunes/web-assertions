@@ -17,6 +17,10 @@ public class RequestHandler {
     private SessionHandler sessionHandler;
     private long delay = -1;
     private TimeUnit delayUnit;
+    private long period = -1;
+    private TimeUnit periodUnit;
+    private long timeout = -1;
+    private TimeUnit timeoutUnit;
     
     public RequestHandler with(int statusCode, String contentType, String body) {
         
@@ -36,6 +40,32 @@ public class RequestHandler {
         
         this.delay = delay;
         this.delayUnit = delayUnit;
+        return this;
+    }
+    
+    public RequestHandler every(long period, TimeUnit periodUnit) {
+        
+        this.period = period;
+        this.periodUnit = periodUnit;
+        return this;
+    }
+    
+    public RequestHandler withTimeout(long timeout, TimeUnit timeoutUnit) {
+        
+        this.timeout = timeout;
+        this.timeoutUnit = timeoutUnit;
+        return this;
+    }
+    
+    public RequestHandler upon(Method method, String resource) {
+        
+        //TODO
+        return this;
+    }
+    
+    public RequestHandler upon(Method method, String resource, String contentType) {
+        
+        //TODO
         return this;
     }
     
@@ -88,11 +118,31 @@ public class RequestHandler {
         return sessionHandler;
     }
     
+    boolean isAsyc() {
+        return delay > -1 || period > -1;
+    }
+    
     long delay() {
         return delay;
     }
     
     TimeUnit delayUnit() {
         return delayUnit;
+    }
+    
+    long period() {
+        return period;
+    }
+    
+    TimeUnit periodUnit() {
+        return periodUnit;
+    }
+    
+    long timeout() {
+        return timeout;
+    }
+    
+    TimeUnit timeoutUnit() {
+        return timeoutUnit;
     }
 }

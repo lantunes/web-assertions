@@ -138,10 +138,9 @@ public class WebAssertionsTest {
               .with(200, "text/html", html(body(h1("ok"))))
               .after(1, TimeUnit.SECONDS);
         
-        server.handle(Method.GET, "/broadcast")
-              .with(200, "text/html", html(body(h1("ok"))));
-              //TODO
-              //.every(2, TimeUnit.SECONDS);
+        server.handle(Method.GET, "/broadcast/:message")
+              .with(200, "text/html", html(body(h1("message: :message"))))
+              .every(2, TimeUnit.SECONDS);
         
         /*
          * TODO take the body of an async response and convert it
