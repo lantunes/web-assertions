@@ -19,8 +19,10 @@ public class RequestHandler {
     private TimeUnit delayUnit;
     private long period = -1;
     private TimeUnit periodUnit;
+    private int periodTimes = -1;
     private long timeout = -1;
     private TimeUnit timeoutUnit;
+    private Upon upon;
     
     public RequestHandler with(int statusCode, String contentType, String body) {
         
@@ -50,6 +52,12 @@ public class RequestHandler {
         return this;
     }
     
+    public RequestHandler every(long period, TimeUnit periodUnit, int times) {
+        
+        this.periodTimes = times;
+        return every(period, periodUnit);
+    }
+    
     public RequestHandler withTimeout(long timeout, TimeUnit timeoutUnit) {
         
         this.timeout = timeout;
@@ -59,13 +67,13 @@ public class RequestHandler {
     
     public RequestHandler upon(Method method, String resource) {
         
-        //TODO
+        this.upon = new Upon(method, resource);
         return this;
     }
     
     public RequestHandler upon(Method method, String resource, String contentType) {
         
-        //TODO
+        this.upon = new Upon(method, resource, contentType);
         return this;
     }
     
@@ -118,8 +126,8 @@ public class RequestHandler {
         return sessionHandler;
     }
     
-    boolean isAsyc() {
-        return delay > -1 || period > -1;
+    boolean isAsync() {
+        return delay > -1 || period > -1 || upon != null;
     }
     
     long delay() {
@@ -138,11 +146,23 @@ public class RequestHandler {
         return periodUnit;
     }
     
+    int periodTimes() {
+        return periodTimes;
+    }
+    
     long timeout() {
         return timeout;
     }
     
     TimeUnit timeoutUnit() {
         return timeoutUnit;
+    }
+    
+    Upon upon() {
+        return upon;
+    }
+    
+    boolean isSuspend() {
+        return upon != null;
     }
 }

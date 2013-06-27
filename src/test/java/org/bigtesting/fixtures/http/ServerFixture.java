@@ -20,6 +20,7 @@ import org.simpleframework.transport.connect.SocketConnection;
  *   content type, and URI patterns
  * - support for using sessions for tests that require state between requests
  * - support for asynchronous HTTP responses
+ * - support for asynchronous HTTP subscribe-broadcast scenarios 
  * - add a delay to a response for tests that require a delayed response
  */
 public class ServerFixture {
@@ -31,9 +32,13 @@ public class ServerFixture {
     private Connection connection;
     
     public ServerFixture(int port) {
+        this(port, 10);
+    }
+    
+    public ServerFixture(int port, int aysncThreadPoolSize) {
         
         this.port = port;
-        this.container = new FixtureContainer();
+        this.container = new FixtureContainer(aysncThreadPoolSize);
     }
     
     public void start() throws IOException {

@@ -14,7 +14,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.HttpResponseBodyPart;
+import com.ning.http.client.HttpResponseHeaders;
+import com.ning.http.client.HttpResponseStatus;
 import com.ning.http.client.Response;
 
 public class WebAssertionsTest {
@@ -46,7 +50,7 @@ public class WebAssertionsTest {
     }
     
     @Test
-    public void test1() {
+    public void testSimpleGet() {
         
        server.handle(Method.GET, "/")
              .with(200, "text/html", 
@@ -58,7 +62,19 @@ public class WebAssertionsTest {
     }
     
     @Test
-    public void test2() {
+    public void testSimpleGetWithPathParam() {
+        
+       server.handle(Method.GET, "/name/:name")
+             .with(200, "text/html", 
+                     html(body(h1("Hello :name"))));
+        
+        assertThatRequestFor(localhost + "/name/Tim")
+            .producesPage()
+            .withH1Tag(withContent("Hello Tim"));
+    }
+    
+    @Test
+    public void testConcurrentRequests() {
         
         server.handle(Method.GET, "/name/:name")
               .with(200, "text/html", 
@@ -83,7 +99,7 @@ public class WebAssertionsTest {
     }
     
     @Test
-    public void test3() {
+    public void testStatefulConcurrentRequests() {
         
         /*
          * tests that assertThatRequestFor()
@@ -127,20 +143,35 @@ public class WebAssertionsTest {
     }
     
     @Test
-    public void test4() throws Exception {
+    public void testDelay() {
         
-        /*
-         * TODO add support to server fixture to 
-         * return async response; see: http://www.simpleframework.org/doc/tutorial/tutorial.php
-         * near bottom
-         */
         server.handle(Method.GET, "/suspend")
               .with(200, "text/html", html(body(h1("ok"))))
               .after(1, TimeUnit.SECONDS);
         
-        server.handle(Method.GET, "/broadcast/:message")
+        assertThatRequestFor(localhost + "/suspend")
+            .producesPage()
+            .withH1Tag(withContent("ok"));
+    }
+    
+    @Test
+    public void testAsyncRequestResponse() throws Exception {
+        
+        server.handle(Method.GET, "/echo/:message")
               .with(200, "text/html", html(body(h1("message: :message"))))
-              .every(2, TimeUnit.SECONDS);
+              .every(1, TimeUnit.SECONDS, 3);
+        
+        /* TODO
+        assertThatAsyncRequestFor(localhost + "/suspend")
+            .producesResponse()
+            .withH1Tag(withContent("OK"))
+            .every(2, TimeUnit.SECONDS);
+            
+        assertThatRequestFor(localhost + "/suspend")
+            .producesPage()
+            .withH1Tag(withContent("OK"))
+            .within(5, TimeUnit.SECONDS);
+       */
         
         /*
          * TODO take the body of an async response and convert it
@@ -149,9 +180,56 @@ public class WebAssertionsTest {
          */
         
         AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
-        Future<Response> f = asyncHttpClient.prepareGet(localhost + "/suspend").execute();
-        Response r = f.get();
+        Future<Integer> f = asyncHttpClient.prepareGet(localhost + "/echo/hello").execute(
+                new AsyncCompletionHandler<Integer>() {
+                    @Override
+                    public Integer onCompleted(Response r) throws Exception {
+                        if (r != null) {
+                            System.out.println("COMPLETED: " + r.getResponseBody());
+                            return r.getStatusCode();
+                        }
+                        return 200;
+                    }
+                    
+                    @Override
+                    public STATE onHeadersReceived(HttpResponseHeaders h) throws Exception {
+                        System.out.println("HEADERS: " + h.getHeaders().toString());
+                        return STATE.CONTINUE;
+                    }
+                    
+                    @Override
+                    public STATE onStatusReceived(HttpResponseStatus status) throws Exception {
+                        System.out.println("STATUS: " + status.getStatusCode());
+                        return STATE.CONTINUE;
+                    }
+                    
+                    @Override
+                    public STATE onBodyPartReceived(HttpResponseBodyPart bodyPart) throws Exception {
+                        System.out.println("CHUNK: " + new String(bodyPart.getBodyPartBytes()));
+                        return STATE.CONTINUE;
+                    }
+                    
+                    @Override
+                    public void onThrowable(Throwable t) {
+                        System.out.println("ERROR");
+                        t.printStackTrace();
+                    }
+                });
         
-        System.out.println(r.getResponseBody());
+        int statusCode = f.get();
+        System.out.println("status code: " + statusCode);
+    }
+    
+    @Test
+    public void testUpon() {
+        
+        /*
+         * NOTE: for this to work, a client must first make
+         * a request to "/subscribe", otherwise no handler will
+         * be available for "/broadcast"
+         */
+        server.handle(Method.GET, "/subscribe")
+              .with(200, "text/html", html(body(h1("message: :message"))))
+              .upon(Method.GET, "/broadcast/:message");
     }
 }
