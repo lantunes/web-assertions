@@ -127,7 +127,7 @@ public class RequestHandler {
     }
     
     boolean isAsync() {
-        return delay > -1 || period > -1 || upon != null;
+        return delay > -1 || period > -1 || isSuspend();
     }
     
     long delay() {

@@ -3,6 +3,7 @@ package org.bigtesting.assertions.web.test;
 import static org.bigtesting.WebAssertions.*;
 import static org.bigtesting.html.HtmlWriter.*;
 
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -221,15 +222,75 @@ public class WebAssertionsTest {
     }
     
     @Test
-    public void testUpon() {
+    public void testUpon() throws Exception {
         
         /*
          * NOTE: for this to work, a client must first make
          * a request to "/subscribe", otherwise no handler will
          * be available for "/broadcast"
+         * 
+         * TODO
+         * ability to include request body in response body, i.e.:
+         * server.handle(Method.GET, "/subscribe")
+         *    .with(200, "text/html", html(body(h1("message: [request.body]"))))
+         *    .upon(Method.GET, "/broadcast");
          */
         server.handle(Method.GET, "/subscribe")
               .with(200, "text/html", html(body(h1("message: :message"))))
               .upon(Method.GET, "/broadcast/:message");
+        
+        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
+        Future<Integer> f = asyncHttpClient.prepareGet(localhost + "/subscribe").execute(
+                new AsyncCompletionHandler<Integer>() {
+                    @Override
+                    public Integer onCompleted(Response r) throws Exception {
+                        if (r != null) {
+                            System.out.println("COMPLETED: " + r.getResponseBody());
+                            return r.getStatusCode();
+                        }
+                        return 200;
+                    }
+                    
+                    @Override
+                    public STATE onHeadersReceived(HttpResponseHeaders h) throws Exception {
+                        System.out.println("HEADERS: " + h.getHeaders().toString());
+                        return STATE.CONTINUE;
+                    }
+                    
+                    @Override
+                    public STATE onStatusReceived(HttpResponseStatus status) throws Exception {
+                        System.out.println("STATUS: " + status.getStatusCode());
+                        return STATE.CONTINUE;
+                    }
+                    
+                    @Override
+                    public STATE onBodyPartReceived(HttpResponseBodyPart bodyPart) throws Exception {
+                        System.out.println("CHUNK: " + new String(bodyPart.getBodyPartBytes()));
+                        return STATE.CONTINUE;
+                    }
+                    
+                    @Override
+                    public void onThrowable(Throwable t) {
+                        if (!(t instanceof CancellationException)) {
+                            System.out.println("ERROR");
+                            t.printStackTrace();
+                        }
+                    }
+                });
+        
+        for (int i = 0; i < 3; i++) {
+            
+            assertThatRequestFor(localhost + "/broadcast/hello" + i)
+                .producesPage();
+            
+            Thread.sleep(1000);
+        }
+        
+        /*
+         * NOTE: this will throw an exception if the response is not complete after 5 seconds:
+         * int statusCode = f.get(5, TimeUnit.SECONDS);
+         */
+        
+        f.cancel(true);
     }
 }

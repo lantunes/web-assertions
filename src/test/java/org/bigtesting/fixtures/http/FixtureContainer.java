@@ -9,8 +9,10 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.simpleframework.http.ContentType;
@@ -36,7 +38,9 @@ public class FixtureContainer implements Container {
     
     private final Executor asyncExecutor;
     
-    private Set<HandlerKey> uponHandlers = new HashSet<HandlerKey>();
+    private final Set<HandlerKey> uponHandlers = new HashSet<HandlerKey>();
+    
+    private final BlockingQueue<Broadcast> broadcasts = new LinkedBlockingQueue<Broadcast>();
     
     public FixtureContainer(int aysncThreadPoolSize) {
         asyncExecutor = Executors.newFixedThreadPool(aysncThreadPoolSize);
@@ -63,32 +67,18 @@ public class FixtureContainer implements Container {
         String responseContentType = "text/plain";
         String responseBody = "";
         
-        String method = request.getMethod();
-        String path = request.getPath().getPath();
-        ContentType requestContentType = request.getContentType();
+        ResolvedRequest resolved = resolve(request);
         
-        /* get the route and the handler for this request */
-        Route route = routeMap.getRoute(path);
-        if (route == null) {
-            throw new RuntimeException("could not find a route for " + path);
-        }
-        String contentType = requestContentType != null ? 
-                requestContentType.toString() : null;
-        HandlerKey key = new HandlerKey(method, route, contentType);
-        RequestHandler handler = handlerMap.get(key);
-        if (handler == null) {
-            throw new RuntimeException("could not find a handler for " + 
-                    method + " - " + path);
+        if (uponHandlers.contains(resolved.key)) {
+            
+            broadcasts.add(new Broadcast(resolved.route, 
+                    request.getPath().getPath()));
+            /* continue handling the request, as an 
+             * upon handler won't itself contain an Upon,
+             * and it needs to return a normal response */
         }
         
-        /////////Upon handling
-        
-        if (uponHandlers.contains(key)) {
-            //TODO notify suspended response with path
-            //continue through handling this request
-        }
-        
-        Upon upon = handler.upon();
+        Upon upon = resolved.handler.upon();
         if (upon != null) {
             RequestHandler uponHandler = 
                     new RequestHandler().with(200, "text/plain", "");
@@ -97,10 +87,8 @@ public class FixtureContainer implements Container {
             uponHandlers.add(uponKey);            
         }
         
-        ////////////
-        
         /* set the content type */
-        String handlerContentType = handler.contentType();
+        String handlerContentType = resolved.handler.contentType();
         if (handlerContentType != null && 
                 handlerContentType.trim().length() != 0) {
             
@@ -108,28 +96,32 @@ public class FixtureContainer implements Container {
         }
         
         /* set the response body */
-        Session session = getSessionIfExists(request);
-        String handlerBody = handler.body(path, route.pathParameterElements(), session);
-        if (handlerBody != null && handlerBody.trim().length() != 0) {
-            responseBody = handlerBody;
+        if (!resolved.handler.isSuspend()) {
+            Session session = getSessionIfExists(request);
+            String path = request.getPath().getPath();
+            String handlerBody = resolved.handler.body(path, 
+                    resolved.route.pathParameterElements(), session);
+            if (handlerBody != null && handlerBody.trim().length() != 0) {
+                responseBody = handlerBody;
+            }
         }
         
         /* create a new session if required */
-        SessionHandler sessionHandler = handler.sessionHandler();
+        SessionHandler sessionHandler = resolved.handler.sessionHandler();
         if (sessionHandler != null) {
-            createNewSession(request, response, route, sessionHandler);
+            createNewSession(request, response, resolved.route, sessionHandler);
         }
         
         /* set the response status code */
-        int handlerStatusCode = handler.statusCode();
+        int handlerStatusCode = resolved.handler.statusCode();
         if (handlerStatusCode == -1) {
             throw new RuntimeException("a response status code must be specified");
         }
-        response.setCode(handler.statusCode());
+        response.setCode(resolved.handler.statusCode());
         
         /* handle the response */
-        if (handler.isAsync()) {
-            doAsync(response, handler, responseContentType, responseBody);
+        if (resolved.handler.isAsync()) {
+            doAsync(response, resolved.handler, responseContentType, responseBody);
         } else {
             sendAndCommitResponse(response, responseContentType, responseBody);
         }
@@ -199,7 +191,41 @@ public class FixtureContainer implements Container {
         response.setDate("Last-Modified", time);
     }
     
-    private final class AsyncTask implements Runnable {
+    private ResolvedRequest resolve(Request request) {
+        
+        String method = request.getMethod();
+        String path = request.getPath().getPath();
+        ContentType requestContentType = request.getContentType();
+        
+        /* get the route and the handler for this request */
+        Route route = routeMap.getRoute(path);
+        if (route == null) {
+            throw new RuntimeException("could not find a route for " + path);
+        }
+        String contentType = requestContentType != null ? 
+                requestContentType.toString() : null;
+        HandlerKey key = new HandlerKey(method, route, contentType);
+        RequestHandler handler = handlerMap.get(key);
+        if (handler == null) {
+            throw new RuntimeException("could not find a handler for " + 
+                    method + " - " + path);
+        }
+        
+        ResolvedRequest resolved = new ResolvedRequest();
+        resolved.handler = handler;
+        resolved.route = route;
+        resolved.key = key;
+        return resolved;
+    }
+    
+    private class ResolvedRequest {
+        
+        public Route route;
+        public RequestHandler handler;
+        public HandlerKey key;
+    }
+    
+    private class AsyncTask implements Runnable {
 
         private Response response; 
         private RequestHandler handler;
@@ -221,7 +247,7 @@ public class FixtureContainer implements Container {
             
             if (handler.isSuspend()) {
                 
-                //TODO suspend this response and send content upon notification
+                handleBroadcasts();
                 
             } else {
             
@@ -230,6 +256,32 @@ public class FixtureContainer implements Container {
                     respondPeriodically(period);
                 } else {
                     sendAndCommitResponse(response, responseContentType, responseBody);
+                }
+            }
+        }
+
+        private void handleBroadcasts() {
+            
+            while(true) {
+                try {
+                    
+                    Broadcast broadcast = broadcasts.take();
+                    if (broadcast instanceof StopBroadcasting) {
+                        response.getPrintStream().close();
+                        break;
+                    }
+                    
+                    Route route = broadcast.getRoute();
+                    String path = broadcast.getPath();
+                    
+                    /* no support for session variables for now */
+                    String handlerBody = handler.body(path, 
+                            route.pathParameterElements(), null);
+                    
+                    sendResponse(response, responseContentType, handlerBody);
+                    
+                } catch (Exception e) {
+                    logger.error("error waiting for, or handling, a broadcast", e);
                 }
             }
         }
@@ -281,6 +333,31 @@ public class FixtureContainer implements Container {
                     }
                 }
             }, 0, periodInMillis);
+        }
+    }
+    
+    private class Broadcast {
+        
+        private final Route route;
+        private final String path;
+        
+        public Broadcast(Route route, String path) {
+            this.route = route;
+            this.path = path;
+        }
+        
+        public Route getRoute() {
+            return route;
+        }
+        
+        public String getPath() {
+            return path;
+        }
+    }
+    
+    private class StopBroadcasting extends Broadcast {
+        public StopBroadcasting() {
+            super(null, null);
         }
     }
 }
