@@ -33,13 +33,13 @@ public class PageAssertion {
         return this;
     }
     
-//    public PageAssertion withElement(String elementId, 
-//            ElementAttributeAssertion elementAttrAssertion) {
-//        
-//        HtmlElement htmlElement = ((HtmlPage)page).getElementById(elementId);
-//        elementAttrAssertion.doAssertion(htmlElement);
-//        return this;
-//    }
+    public PageAssertion withElement(String elementId, 
+            ElementAttributeAssertion elementAttrAssertion) {
+        
+        HtmlElement htmlElement = ((HtmlPage)page).getElementById(elementId);
+        elementAttrAssertion.doAssertion(htmlElement);
+        return this;
+    }
     
     public PageAssertion withFlagElement(PageElementContentAssertion pageElementAssertion) {
         return withElement("flag", pageElementAssertion);

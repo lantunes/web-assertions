@@ -42,16 +42,17 @@ public class ConcurrentRequest {
                 throw new RuntimeException(e);
             }
             
-            failIfAClientHasError();
+            failIfAClientHasError(i);
         }
     }
 
-    private void failIfAClientHasError() {
+    private void failIfAClientHasError(int runNumber) {
         
         for (Client cl : clients) {
             if (cl.hasException()) {
                 String message = "client named " + cl.getName() + 
-                        " reported a problem: " + cl.getCaught().getMessage();
+                        " reported a problem on run #" + (runNumber + 1) + 
+                        ": " + cl.getCaught().getMessage();
                 
                 if (!(cl.getCaught() instanceof AssertionFailedError)) {
                     throw new RuntimeException(message, cl.getCaught());

@@ -2,55 +2,54 @@ package org.bigtesting;
 
 import org.bigtesting.assertions.web.concurrent.Client;
 import org.bigtesting.assertions.web.concurrent.ConcurrentRequest;
+import org.bigtesting.assertions.web.internal.Method;
 import org.bigtesting.assertions.web.internal.PageElementContentAssertion;
 import org.bigtesting.assertions.web.internal.RequestAssertion;
+import org.bigtesting.assertions.web.internal.WebClientManager;
 
 import com.gargoylesoftware.htmlunit.WebClient;
 
 public class WebAssertions {
 
-    private static final ThreadLocal<WebClient> threadClient = new ThreadLocal<WebClient>();
+    private static final WebClientManager webClientManager = new WebClientManager();
     
-    public static RequestAssertion assertThatRequestFor(String path) {
+    public static final Method GET = Method.GET;
+    public static final Method POST = Method.POST;
+    public static final Method PUT = Method.PUT; 
+    public static final Method TRACE = Method.TRACE; 
+    public static final Method OPTIONS = Method.OPTIONS; 
+    public static final Method HEAD = Method.HEAD;
+    public static final Method DELETE = Method.DELETE;
+    
+    public static RequestAssertion assertRequest(String url) {
         
-        WebClient client = threadClient.get();
-        if (client == null) {
-            //TODO can use various different browser versions, etc. 
-            client = new WebClient();
-            threadClient.set(client);
-        }
+        WebClient client = webClientManager.getWebClient();
+        return new RequestAssertion(client, url);
+    }
+    
+    public static RequestAssertion assertRequest(Method method, String url) {
         
-        //TODO debugging
-        System.out.println("using client: " + client + " : " + Thread.currentThread().getName());
-        //end debugging
-        
-        return new RequestAssertion(client, path);
+        WebClient client = webClientManager.getWebClient();
+        return new RequestAssertion(client, method, url);
     }
     
     public static void newWebClient() {
         
-        closeWebClient();
-        threadClient.remove();
-        threadClient.set(new WebClient());
+        webClientManager.newWebClient();
     }
     
     public static void closeWebClient() {
         
-        WebClient client = threadClient.get();
-        if (client != null) {
-            //TODO debugging
-            System.out.println("closing client: " + client + " : " + Thread.currentThread().getName());
-            //end debugging
-            client.closeAllWindows();
-        }
+        webClientManager.closeWebClient();
     }
     
     public static PageElementContentAssertion withContent(String expected) {
+        
         return new PageElementContentAssertion(expected);
     }
     
-    public static ConcurrentRequest assertThatClients(Client ... clients) {
+    public static ConcurrentRequest assertClients(Client ... clients) {
+        
         return new ConcurrentRequest(clients);
     }
-    
 }

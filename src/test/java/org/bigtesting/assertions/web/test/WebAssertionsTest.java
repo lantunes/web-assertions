@@ -57,7 +57,7 @@ public class WebAssertionsTest {
              .with(200, "text/html", 
                      html(body(h1("Hello"))));
         
-        assertThatRequestFor(localhost + "/")
+        assertRequest(localhost + "/")
             .producesPage()
             .withH1Tag(withContent("Hello"));
     }
@@ -69,7 +69,7 @@ public class WebAssertionsTest {
              .with(200, "text/html", 
                      html(body(h1("Hello :name"))));
         
-        assertThatRequestFor(localhost + "/name/Tim")
+        assertRequest(localhost + "/name/Tim")
             .producesPage()
             .withH1Tag(withContent("Hello Tim"));
     }
@@ -81,17 +81,17 @@ public class WebAssertionsTest {
               .with(200, "text/html", 
                       html(body(h1("Hello :name"))));
         
-        assertThatClients(
+        assertClients(
                 new Client("client-1") {
                     public void onRequest() {
-                        assertThatRequestFor(localhost + "/name/Joe")
+                        assertRequest(localhost + "/name/Joe")
                             .producesPage()
                             .withH1Tag(withContent("Hello Joe"));
                     }
                 }, 
                 new Client("client-2") {
                     public void onRequest() {
-                        assertThatRequestFor(localhost + "/name/Tim")
+                        assertRequest(localhost + "/name/Tim")
                             .producesPage()
                             .withH1Tag(withContent("Hello Tim"));
                     }
@@ -108,34 +108,34 @@ public class WebAssertionsTest {
          * with the current thread consistently
          */
        
-        server.handle(Method.GET, "/set/name/:name")
+        server.handle(Method.PUT, "/name/:name")
               .with(200, "text/html", 
                       html(body(h1("OK"))))
               .withNewSession(new PathParamSessionHandler());
         
-        server.handle(Method.GET, "/get/name")
+        server.handle(Method.GET, "/name")
               .with(200, "text/html", 
                       html(body(h1("Name: {name}"))));
         
-        assertThatClients(
+        assertClients(
                 new Client("client-1") {
                     public void onRequest() {
-                        assertThatRequestFor(localhost + "/set/name/Joe")
+                        assertRequest(PUT, localhost + "/name/Joe")
                             .producesPage()
                             .withH1Tag(withContent("OK"));
                         
-                        assertThatRequestFor(localhost + "/get/name")
+                        assertRequest(GET, localhost + "/name")
                             .producesPage()
                             .withH1Tag(withContent("Name: Joe"));
                     }
                 },
                 new Client("client-2") {
                     public void onRequest() {
-                        assertThatRequestFor(localhost + "/set/name/Tim")
+                        assertRequest(PUT, localhost + "/name/Tim")
                             .producesPage()
                             .withH1Tag(withContent("OK"));
                         
-                        assertThatRequestFor(localhost + "/get/name")
+                        assertRequest(GET, localhost + "/name")
                             .producesPage()
                             .withH1Tag(withContent("Name: Tim"));
                     }
@@ -150,7 +150,7 @@ public class WebAssertionsTest {
               .with(200, "text/html", html(body(h1("ok"))))
               .after(1, TimeUnit.SECONDS);
         
-        assertThatRequestFor(localhost + "/suspend")
+        assertRequest(localhost + "/suspend")
             .producesPage()
             .withH1Tag(withContent("ok"));
     }
@@ -163,12 +163,12 @@ public class WebAssertionsTest {
               .every(1, TimeUnit.SECONDS, 3);
         
         /* TODO
-        assertThatAsyncRequestFor(localhost + "/suspend")
+        assertAsyncRequest(localhost + "/suspend")
             .producesResponse()
             .withH1Tag(withContent("OK"))
             .every(2, TimeUnit.SECONDS);
             
-        assertThatRequestFor(localhost + "/suspend")
+        assertRequest(localhost + "/suspend")
             .producesPage()
             .withH1Tag(withContent("OK"))
             .within(5, TimeUnit.SECONDS);
@@ -280,10 +280,13 @@ public class WebAssertionsTest {
         
         for (int i = 0; i < 3; i++) {
             
-            assertThatRequestFor(localhost + "/broadcast/hello" + i)
-                .producesPage();
-            
+            /* the sleep call is before the broadcast request
+             * because sometimes the first request is made
+             * before the async client has made its request */
             Thread.sleep(1000);
+            
+            assertRequest(localhost + "/broadcast/hello" + i)
+                .producesPage();
         }
         
         /*
