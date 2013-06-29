@@ -63,7 +63,7 @@ request, say, 15 times:
 
 ```java
 assertClients(
-    new Client(10) {
+    new Client("client-1", 10) {
         public void onRequest() {
             assertRequest("http://localhost:8080/name/Tim")
                 .producesPage()
@@ -113,7 +113,7 @@ assertClients(
                 .withH1Tag(withContent("Name: Tim"));
         }
     })
-    .canMakeConcurrentRequests(10);
+    .canMakeConcurrentRequests();
 ```
 
 ### Tear Down
