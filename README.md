@@ -30,9 +30,6 @@ public void beforeEachTest() throws Exception {
 ...then you can make a simple GET request:
 
 ```java
-server.handle(Method.GET, "/")
-      .with(200, "text/html", html(body(h1("Hello"))));
-
 assertRequest("http://localhost:8080/")
     .producesPage()
     .withH1Tag(withContent("Hello"));
@@ -43,9 +40,6 @@ assertRequest("http://localhost:8080/")
 Making concurrent requests is easy:
 
 ```java
-server.handle(Method.GET, "/name/:name")
-      .with(200, "text/html", html(body(h1("Hello :name"))));
-
 assertClients(
     new Client("client-1") {
         public void onRequest() {
@@ -84,13 +78,6 @@ assertClients(
 Requests are stateful, using the same web client:
 
 ```java
-server.handle(Method.PUT, "/name/:name")
-      .with(200, "text/html", html(body(h1("OK"))))
-      .withNewSession(new PathParamSessionHandler());
-
-server.handle(Method.GET, "/name")
-      .with(200, "text/html", html(body(h1("Name: {name}"))));
-              
 assertRequest(PUT, "http://localhost:8080/name/Joe")
     .producesPage()
     .withH1Tag(withContent("OK"));
@@ -103,15 +90,6 @@ assertRequest(GET, "http://localhost:8080/name")
 ...but only with the context of a thread:
 
 ```java
-server.handle(Method.PUT, "/name/:name")
-      .with(200, "text/html", 
-              html(body(h1("OK"))))
-      .withNewSession(new PathParamSessionHandler());
-
-server.handle(Method.GET, "/name")
-      .with(200, "text/html", 
-              html(body(h1("Name: {name}"))));
-
 assertClients(
     new Client("client-1") {
         public void onRequest() {
