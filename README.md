@@ -116,6 +116,20 @@ assertClients(
     .canMakeConcurrentRequests();
 ```
 
+Though you can use a new client if you want to:
+
+```java
+assertRequest(PUT, "http://localhost:8080/name/Joe")
+    .producesPage()
+    .withH1Tag(withContent("OK"));
+
+newWebClient();
+    
+assertRequest(GET, "http://localhost:8080/name")
+    .producesPage()
+    .withH1Tag(withContent("Name: Unknown"));
+```
+
 ### Tear Down
 
 Close the web client after each test:
