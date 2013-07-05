@@ -8,9 +8,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.bigtesting.assertions.web.concurrent.Client;
-import org.bigtesting.fixtures.http.Method;
-import org.bigtesting.fixtures.http.PathParamSessionHandler;
-import org.bigtesting.fixtures.http.ServerFixture;
+import org.bigtesting.fixd.ServerFixture;
+import org.bigtesting.fixd.core.Method;
+import org.bigtesting.fixd.session.PathParamSessionHandler;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

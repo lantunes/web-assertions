@@ -40,9 +40,9 @@
         
         <!-- test dependencies -->
         <dependency>
-            <groupId>org.simpleframework</groupId>
-            <artifactId>simple</artifactId>
-            <version>5.1.4</version>
+            <groupId>org.bigtesting</groupId>
+            <artifactId>fixd</artifactId>
+            <version>1.0.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
