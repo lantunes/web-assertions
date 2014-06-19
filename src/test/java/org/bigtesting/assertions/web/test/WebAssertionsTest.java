@@ -332,6 +332,33 @@ public class WebAssertionsTest {
     }
     
     @Test
+    public void testMultipleConcurrentRequests() {
+        
+        server.handle(Method.GET, "/name/:name")
+              .with(200, "text/html", 
+                      render(new HTMLPage().withH1Content("Hello :name")));
+        
+        assertClients(
+                new Client("client-1", 2) {
+                    public void onRequest() {
+                        assertRequest("http://localhost:9090/name/Joe")
+                            .producesPage()
+                            .withH1Tag(withContent("Hello Joe"));
+                    }
+                }, 
+                new Client("client-2", 3) {
+                    public void onRequest() {
+                        assertRequest("http://localhost:9090/name/Tim")
+                            .producesPage()
+                            .withH1Tag(withContent("Hello Tim"));
+                    }
+                })
+                .canMakeConcurrentRequests(2);
+        
+        assertEquals(10, server.capturedRequests().size());
+    }
+    
+    @Test
     public void testConcurrentRequests_Stateful() {
         
         /*
