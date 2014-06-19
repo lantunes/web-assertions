@@ -19,15 +19,12 @@ package org.bigtesting.assertions.web.internal;
  * 
  * @author Luis Antunes
  */
-public class RequestBody {
-    
-    private final String body;
-    
-    public RequestBody(String body) {
-        this.body = body;
+public class CheckBoxInput extends FormInput {
+    public CheckBoxInput(String inputName) {
+        super(inputName);
     }
     
-    public String getBody() {
-        return body;
+    public CheckBoxInputValue checked() {
+        return new CheckBoxInputValue(inputName, true);
     }
 }

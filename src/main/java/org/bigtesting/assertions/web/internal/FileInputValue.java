@@ -15,19 +15,23 @@
  */
 package org.bigtesting.assertions.web.internal;
 
+import com.gargoylesoftware.htmlunit.html.HtmlFileInput;
+import com.gargoylesoftware.htmlunit.html.HtmlInput;
+
 /**
  * 
  * @author Luis Antunes
  */
-public class RequestBody {
+public class FileInputValue extends FormInputValue {
     
-    private final String body;
+    private final String fileName;
     
-    public RequestBody(String body) {
-        this.body = body;
+    public FileInputValue(String inputName, String fileName) {
+        super(inputName);
+        this.fileName = fileName;
     }
     
-    public String getBody() {
-        return body;
+    public void handleInput(HtmlInput input) {
+        ((HtmlFileInput)input).setValueAttribute(fileName);
     }
 }

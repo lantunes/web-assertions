@@ -19,15 +19,12 @@ package org.bigtesting.assertions.web.internal;
  * 
  * @author Luis Antunes
  */
-public class RequestBody {
-    
-    private final String body;
-    
-    public RequestBody(String body) {
-        this.body = body;
+public class StandardInput extends FormInput {
+    public StandardInput(String inputName) {
+        super(inputName);
     }
     
-    public String getBody() {
-        return body;
+    public FormInputValue setTo(String value) {
+        return new StandardInputValue(inputName, value);
     }
 }

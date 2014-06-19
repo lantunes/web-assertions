@@ -19,15 +19,14 @@ package org.bigtesting.assertions.web.internal;
  * 
  * @author Luis Antunes
  */
-public class RequestBody {
+public class ElementAttribute {
+    private final String name;
     
-    private final String body;
-    
-    public RequestBody(String body) {
-        this.body = body;
+    public ElementAttribute(String name) {
+        this.name = name;
     }
     
-    public String getBody() {
-        return body;
+    public ElementAttributeAssertion setTo(String expected) {
+        return new ElementAttributeAssertion(name, expected);
     }
 }

@@ -15,19 +15,23 @@
  */
 package org.bigtesting.assertions.web.internal;
 
+import com.gargoylesoftware.htmlunit.html.HtmlInput;
+
 /**
  * 
  * @author Luis Antunes
  */
-public class RequestBody {
+public abstract class FormInputValue {
+
+    protected final String inputName;
     
-    private final String body;
-    
-    public RequestBody(String body) {
-        this.body = body;
+    public FormInputValue(String inputName) {
+        this.inputName = inputName;
     }
     
-    public String getBody() {
-        return body;
+    public String getInputName() {
+        return inputName;
     }
+    
+    public abstract void handleInput(HtmlInput input);
 }

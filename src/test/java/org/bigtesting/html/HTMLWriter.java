@@ -13,21 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.bigtesting.assertions.web.internal;
+package org.bigtesting.html;
+
+import java.io.PrintWriter;
+
+import org.apache.commons.io.output.ByteArrayOutputStream;
 
 /**
  * 
  * @author Luis Antunes
  */
-public class RequestBody {
-    
-    private final String body;
-    
-    public RequestBody(String body) {
-        this.body = body;
-    }
-    
-    public String getBody() {
-        return body;
+public class HTMLWriter {
+
+    public static String render(Renderable page) {
+        
+        PrintWriter pw = null;
+        try {
+            
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            pw = new PrintWriter(out);
+            page.render(pw);
+            pw.flush();
+            return new String(out.toByteArray());
+            
+        } catch (Exception e) {
+            throw new RuntimeException("error rendering page", e);
+        } finally {
+            pw.close();
+        }
     }
 }

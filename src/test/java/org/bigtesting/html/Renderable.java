@@ -13,21 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.bigtesting.assertions.web.internal;
+package org.bigtesting.html;
+
+import java.io.PrintWriter;
 
 /**
  * 
  * @author Luis Antunes
  */
-public class RequestBody {
-    
-    private final String body;
-    
-    public RequestBody(String body) {
-        this.body = body;
-    }
-    
-    public String getBody() {
-        return body;
-    }
+public interface Renderable {
+
+    void render(PrintWriter out);
 }

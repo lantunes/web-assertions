@@ -17,23 +17,32 @@ package org.bigtesting.assertions.web.internal;
 
 import static junit.framework.Assert.*;
 
+import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.DomNodeList;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 /**
  * 
  * @author Luis Antunes
  */
-public class ElementAttributeAssertion {
+public class RequestedPage {
+    private Page page;
     
-    private final String attribute;
-    private final String expected;
-    
-    public ElementAttributeAssertion(String attribute, String expected) {
-        this.attribute = attribute;
-        this.expected = expected;
+    public RequestedPage(WebClient client, String url) throws Exception {
+        page = client.getPage(url);
+        assertNotNull(page);
     }
     
-    public void doAssertion(HtmlElement element) {
-        assertEquals(expected, element.getAttribute(attribute));
-    }   
+    public String andGetTagContent(String name) {
+        DomNodeList<HtmlElement> elements = ((HtmlPage)page).getElementsByTagName(name);
+        assertEquals(1, elements.size());
+        HtmlElement tag = elements.get(0);
+        return tag.getTextContent();
+    }
+    
+    public String andGetH2TagContent() {
+        return andGetTagContent("h2");
+    }
 }

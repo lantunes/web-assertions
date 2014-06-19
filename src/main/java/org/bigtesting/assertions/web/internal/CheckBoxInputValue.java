@@ -15,19 +15,23 @@
  */
 package org.bigtesting.assertions.web.internal;
 
+import com.gargoylesoftware.htmlunit.html.HtmlCheckBoxInput;
+import com.gargoylesoftware.htmlunit.html.HtmlInput;
+
 /**
  * 
  * @author Luis Antunes
  */
-public class RequestBody {
+public class CheckBoxInputValue extends FormInputValue {
     
-    private final String body;
+    private final boolean checked;
     
-    public RequestBody(String body) {
-        this.body = body;
+    public CheckBoxInputValue(String inputName, boolean checked) {
+        super(inputName);
+        this.checked = checked;
     }
     
-    public String getBody() {
-        return body;
+    public void handleInput(HtmlInput input) {
+        ((HtmlCheckBoxInput)input).setChecked(checked);
     }
 }
