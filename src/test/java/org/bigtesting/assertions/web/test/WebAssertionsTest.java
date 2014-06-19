@@ -13,6 +13,7 @@ import org.bigtesting.fixd.ServerFixture;
 import org.bigtesting.fixd.session.PathParamSessionHandler;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ning.http.client.AsyncCompletionHandler;
@@ -103,7 +104,7 @@ public class WebAssertionsTest {
     public void testStatefulConcurrentRequests() {
         
         /*
-         * tests that assertThatRequestFor()
+         * tests that assertRequest()
          * really does associate a new WebClient
          * with the current thread consistently
          */
@@ -155,7 +156,7 @@ public class WebAssertionsTest {
             .withH1Tag(withContent("ok"));
     }
     
-    @Test
+    @Ignore
     public void testAsyncRequestResponse() throws Exception {
         
         server.handle(Method.GET, "/echo/:message")
@@ -221,7 +222,7 @@ public class WebAssertionsTest {
         System.out.println("status code: " + statusCode);
     }
     
-    @Test
+    @Ignore
     public void testUpon() throws Exception {
         
         /*
