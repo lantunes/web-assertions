@@ -332,7 +332,7 @@ public class WebAssertionsTest {
     }
     
     @Test
-    public void testMultipleConcurrentRequests() {
+    public void testMultipleConcurrentRequests() throws Exception {
         
         server.handle(Method.GET, "/name/:name")
               .with(200, "text/html", 
@@ -354,6 +354,8 @@ public class WebAssertionsTest {
                     }
                 })
                 .canMakeConcurrentRequests(2);
+        
+        Thread.sleep(200);
         
         assertEquals(10, server.capturedRequests().size());
     }
