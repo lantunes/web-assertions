@@ -8,8 +8,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.bigtesting.assertions.web.concurrent.Client;
+import org.bigtesting.fixd.Method;
 import org.bigtesting.fixd.ServerFixture;
-import org.bigtesting.fixd.core.Method;
 import org.bigtesting.fixd.session.PathParamSessionHandler;
 import org.junit.After;
 import org.junit.Before;
@@ -111,7 +111,7 @@ public class WebAssertionsTest {
         server.handle(Method.PUT, "/name/:name")
               .with(200, "text/html", 
                       html(body(h1("OK"))))
-              .withNewSession(new PathParamSessionHandler());
+              .withSessionHandler(new PathParamSessionHandler());
         
         server.handle(Method.GET, "/name")
               .with(200, "text/html", 
